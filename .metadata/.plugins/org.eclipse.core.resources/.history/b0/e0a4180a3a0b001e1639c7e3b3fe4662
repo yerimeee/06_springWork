@@ -1,0 +1,53 @@
+package com.kh.spring.common.typehandler;
+
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+
+import org.apache.ibatis.type.BaseTypeHandler;
+import org.apache.ibatis.type.JdbcType;
+
+/*마이바티스 설정을 <version>3.4.6</version>로 하향했고 만약 3.5.6버전을 쓴다면
+Bean파일에서 LocalDateTime형을 썼을 때 버전이 높으면 오류가 날 수 있어서
+핸들러 파일을 이렇게 만들어줘야함
+*/
+
+@MappedType(LocalDateTime.class) //이 타입이 들어왔을 때 변경하겠다는 의미
+public class LocalDateTimeHandler extends BaseTypeHandler<LocalDateTime> {
+
+	@Override //db에 넣을 때 
+	public void setNonNullParameter(PreparedStatement ps, int i, LocalDateTime parameter, JdbcType jdbcType)
+			throws SQLException {
+		ps.setTimestamp(i, Timestamp.valueOf(parameter));
+		
+	}
+
+	@Override //db에서 가져와서 java로 변환할 때
+	public LocalDateTime getNullableResult(ResultSet rs, String columnName) throws SQLException {
+		Timestamp timestamp = rs.getTimestamp(columnName);
+		return getLocalDateTime(timestamp);
+	}
+
+	@Override
+	public LocalDateTime getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
+		Timestamp timestamp = rs.getTimestamp(columnIndex);
+		return getLocalDateTime(timestamp);
+	}
+
+	@Override
+	public LocalDateTime getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
+		Timestamp timestamp = cs.getTimestamp(columnIndex);
+		return getLocalDateTime(timestamp);
+	}
+	
+	private static LocalDateTime getLocalDateTime(Timestamp timestamp) {
+		if(timestamp != null) {
+			return timestamp.toLocalDateTime(); //timestamp가 들어오면 toLocalDateTime으로 타입을 바꿔줌
+		}
+		return null;
+	}
+
+}

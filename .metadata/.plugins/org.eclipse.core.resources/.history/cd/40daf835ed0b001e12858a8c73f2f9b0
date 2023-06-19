@@ -1,0 +1,133 @@
+package com.kh.spring.member.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.kh.spring.member.model.service.MemberService;
+import com.kh.spring.member.model.vo.Member;
+
+@Controller
+@RequestMapping("/member")
+@SessionAttributes({"loginMember"})
+public class MemberController {
+	
+	@Autowired
+	private MemberService memberService;
+	
+	@Autowired
+	private BCryptPasswordEncoder passwordEncoder;
+	
+	/*
+	 * @GetMapping("/memberEnroll.me") 
+	 * public String memberEnroll() { 
+	 * return "member/memberEnroll"; 
+	 * }
+	 아래처럼 더 간단하게도 가능 */
+	
+	@GetMapping("/memberEnroll.me") //Get방식: url 끝에 붙어서 서버로 넘겨짐 그래서 중간에서 가로채면 정보가 다 보여서 보안성 없음
+	public void memberEnroll() {} // => /member/memberEnroll
+	
+	@PostMapping("/memberEnroll.me") //Post방식: HTTP헤더 안에 담겨서 서버로 넘겨지므로 보안성이 있음  //@Request는 request에 담겨서 서버로 넘어가서 서버에서 request를 풀어보는 것!						
+	public String memberEnroll(Member member) { //사용자가 정의한 vo객체에 사용자 입력값 담아주기
+		System.out.println("userPwd=" + member);
+		
+		//비밀번호 암호화
+		String rawPassword = member.getUserPwd(); //값 얻어오기
+		String encodedPassword = passwordEncoder.encode(rawPassword); //변환시키기
+		member.setUserPwd(encodedPassword); //member의 UserPwd를 encodedPassword값으로 바꿈
+		System.out.println("changePwd=" + member);
+		
+		//DB에 insert시키려면 memberService로
+		int result = memberService.insertMember(member);
+		return "redirect:/"; //최상위인 메인으로 감
+	}
+	@GetMapping("/memberLogin.me") //모달창은 get방식이라
+	public String memberLogin() {
+		return "member/memberLogin";
+	}
+	
+	@PostMapping("/memberLogin.me")
+	public String memberLogin(String userId, String userPwd, Model model, RedirectAttributes redirectAttr) { 
+							//변수로 넣어도 되고 Member member에 넣어서 아이디와 비번만 들어오게 해도되고 @RequestParam String userId, @RequestParam String userPwd으로 써서 반드시 필수로 들어오게 해도됨 
+		System.out.println("userId=" + userId);
+		System.out.println("userPwd=" + userPwd);
+		
+		Member member = memberService.selectOneMember(userId); //한 회원의 값만 가져올 것임
+		System.out.println("member =" + member);
+		
+		// 비밀번호 인증 (아이디는 위에서 아이디가 있으면 들어오고 그런 아이디가 없으면 아예 안 들어옴)
+		if(member != null && passwordEncoder.matches(userPwd, member.getUserPwd())) { //암호화된 비밀번호와 매칭을 시키는 것이기 때문에 DB에 비암호화 비번은 로그인 하지 못함
+			model.addAttribute("loginMember", member); //requestScope => sessionScope로 어노테이션 써서 변경(어디서든 사용가능해짐)
+			//member Bean에 들어있는 값들을 loginMember session에 담음
+		} else {
+			redirectAttr.addFlashAttribute("msg", "아이디 또는 비밀번호가 맞지 않습니다");
+		}
+		return "redirect:/";
+	}
+	
+	/*@SessionAttributes + model 통해 로그인 정보를 관리하는 경우
+	
+	*SessionStatus객체를 통해 사용완료 처리해야 한다
+	* - session객체를 폐기하지 않고 재사용
+	*/
+	
+	@GetMapping("/memberLogout.me")
+	public String memberLogout(SessionStatus status) {
+		if(!status.isComplete()) //세션 연결이 되어있으면 연결 끊기
+			status.setComplete();
+		return "redirect:/";
+		
+	}
+	
+	@GetMapping("/memberDetail.me")
+	public void memberDetail() {} //동일한 이름의 jsp로만 갈 것을 구현하려면 void로 하고 중괄호 닫으면 됨
+
+	@PostMapping("/memberUpdate.me")
+	public String memberUpdate(Member member, Model model, RedirectAttributes redirectAttr) {
+		
+		//마이페이지에서 받은 비번 수정값 암호화 -> member.userPwd에 넣기
+		String rawPassword = member.getUserPwd(); //값 얻어오기
+		String encodedPassword = passwordEncoder.encode(rawPassword); //변환시키기
+		member.setUserPwd(encodedPassword); //member의 UserPwd를 encodedPassword값으로 바꿈
+		System.out.println("UpdatePwd=" + member);
+		
+		//DB update
+		int result = memberService.updateMember(member);
+		
+		//잘 되었다는 alert창
+		if(result > 0) {
+			redirectAttr.addFlashAttribute("msg", "정보가 수정되었습니다.");
+		} else {
+			redirectAttr.addFlashAttribute("msg", "정보 수정을 실패했습니다.");
+		}
+		
+		model.addAttribute("userId", member.getUserId());
+		return "redirect:/member/memberInfo.me";
+	} //memberUpdate.me end
+	
+	@GetMapping("/memberInfo.me") //위 메소드에서 model로 넘겨줘야 여기서 id를 다시 검색해서 회원정보 가져옴
+	public String memberInfo(String userId, Model model) {
+		model.addAttribute("loginMember", memberService.selectOneMember(userId));
+		return "redirect:/";
+	}
+	
+	@GetMapping("/checkId.do")
+	public String checkId(@RequestParam String userId, Model model) {
+		Member member = memberService.selectOneMember(userId);
+		boolean available = member == null;
+		
+		model.addAttribute("userId", userId);
+		model.addAttribute("available", available);
+		
+		return "jsonView";
+	}
+}

@@ -1,0 +1,88 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+
+<style>
+	#demo-container{width:550px; margin:auto;}
+</style>
+
+<jsp:include page="/WEB-INF/views/common/header.jsp">
+	<jsp:param value="Dev수정" name="title"/>
+</jsp:include>
+<br>
+
+<div id="demo-container" class="form-floating">
+	<form name="frm">
+		<div class="mb-3 row">
+			<label for="name" class="col-sm-2 col-form-label">이름</label>
+			<div class="col-sm-10">
+				<input type="text" class="form-control" id="name" name="name" value="${dev.name }" readonly>
+			</div>
+		</div>
+		<div class="mb-3 row">
+			<label for="career" class="col-sm-2 col-form-label">개발경력</label>
+			<div class="col-sm-10">
+				<input type="number" class="form-control" id="career" name="career" value="${dev.career }">
+			</div>
+		</div>
+		<div class="mb-3 row">
+			<label for="email" class="col-sm-2 col-form-label">이메일</label>
+			<div class="col-sm-10">
+				<input type="email" class="form-control" id="email" name="email" value="${dev.email }">
+			</div>
+		</div>
+		 
+		<label class="col-sm-2 col-form-label">성별</label>
+		<div class="form-check form-check-inline">	
+			<input class="form-check-input" type="radio" name="gender" id="inlineRadio1" value="M"
+				${dev.gender eq 'M'? 'checked': '' }>
+			<label class="form-check-label" for="inlineRadio1">남</label>
+		</div>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="radio" name="gender" id="inlineRadio2" value="F">
+			<label class="form-check-label" for="inlineRadio2">여</label>
+		</div>
+		<br>
+		
+		<label class="col-sm-2 col-form-label">개발언어</label>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="checkbox" name="lang" value="java" checked>
+			<label class="form-check-label" for="inlineCheckbox1">JAVA</label>
+		</div>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="checkbox" name="lang" value="c" checked>
+			<label class="form-check-label" for="inlineCheckbox2">C</label>
+		</div>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="checkbox" name="lang" value="JavaScript" checked>
+			<label class="form-check-label" for="inlineCheckbox3">JavaScript</label>
+		</div>
+		<div class="form-check form-check-inline">
+			<input class="form-check-input" type="checkbox" name="lang" value="python">
+			<label class="form-check-label" for="inlineCheckbox3">Python</label>
+		</div>
+	</form>
+	<button type="button" class="btn btn-outline-secondary" onclick="submit('dev1');">제출</button>
+</div>
+
+<script type="text/javascript">
+	const updateDev() = () => {
+		frm.method = 'POST';
+		frm.action = '${pageContext.request.contextPath}/demo/updateDev.do';
+		frm.submit();
+	}
+</script>
+
+</body>
+</html>

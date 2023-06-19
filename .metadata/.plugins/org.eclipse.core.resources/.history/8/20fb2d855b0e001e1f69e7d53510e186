@@ -1,0 +1,14 @@
+package com.kh.spring.common;
+
+import org.springframework.web.multipart.MultipartFile;
+
+public class SpringUtil {
+/*
+ * 파일명 : yyyyMMdd_HHmmssSSS_123.jpg
+ * 
+ */
+	public static String changeMultipartFile(MultipartFile upFile) {
+		String oFilename = upFile.getOriginalFilename();
+		
+	}
+}

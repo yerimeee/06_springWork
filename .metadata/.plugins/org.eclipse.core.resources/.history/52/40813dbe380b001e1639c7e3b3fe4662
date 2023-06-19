@@ -1,0 +1,7 @@
+package com.kh.spring.common.typehandler;
+
+import org.apache.ibatis.type.BaseTypeHandler;
+
+public class LocalDateTimeHandler extends BaseTypeHandler<LocalDateTime> {
+
+}

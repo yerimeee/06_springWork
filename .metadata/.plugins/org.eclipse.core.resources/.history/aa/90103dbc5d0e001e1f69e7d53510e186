@@ -1,0 +1,28 @@
+package com.kh.spring.common;
+
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.springframework.web.multipart.MultipartFile;
+
+public class SpringUtil {
+/*
+ * 파일명 : yyyyMMdd_HHmmssSSS_123.jpg
+ * 
+ */
+	public static String changeMultipartFile(MultipartFile upFile) {
+		String oFilename = upFile.getOriginalFilename();
+		int beginIndex = oFilename.lastIndexOf("."); //.추출
+		String ext = "";
+		
+		if(beginIndex > -1) { 
+			 ext = oFilename.substring(beginIndex); //.jpg까지 추출
+		}
+		
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmssSSS_");
+		DecimalFormat df = new DecimalFormat("000"); //뒷숫자 랜덤으로 배정
+		
+		return sdf.format(new Date()) + df.format(Math.random() * 1000) + ext; //세자리까지 뽑을거라 1000
+	}
+}
